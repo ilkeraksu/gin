@@ -6,7 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/envy/lib"
-	"github.com/codegangsta/gin/lib"
+	"github.com/ilkeraksu/gin/lib"
 
 	"log"
 	"os"
@@ -50,6 +50,11 @@ func main() {
 			Value: ".",
 			Usage: "Path to watch files from",
 		},
+		cli.StringFlag{
+			Name:  "watch,w",
+			Value: ".",
+			Usage: "Override watch path to watch files from",
+		},
 		cli.BoolFlag{
 			Name:  "immediate,i",
 			Usage: "run the server immediately after it's built",
@@ -81,6 +86,10 @@ func MainAction(c *cli.Context) {
 	port := c.GlobalInt("port")
 	appPort := strconv.Itoa(c.GlobalInt("appPort"))
 	immediate = c.GlobalBool("immediate")
+	watchPath := c.GlobalString("watch")
+	if watchPath == "" {
+		watchPath = c.GlobalString("path")
+	}
 
 	// Bootstrap the environment
 	envy.Bootstrap()
@@ -116,7 +125,7 @@ func MainAction(c *cli.Context) {
 	build(builder, runner, logger)
 
 	// scan for changes
-	scanChanges(c.GlobalString("path"), func(path string) {
+	scanChanges(watchPath, func(path string) {
 		logger.Printf("Change detected, build starting...")
 		runner.Kill()
 		build(builder, runner, logger)
